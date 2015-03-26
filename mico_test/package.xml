@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<package>
+  <name>mico_test</name>
+  <version>0.0.1</version>
+  <description>Test code for the Mico arm</description>
+
+  <author email="langen@robot-rose.nl">Mathijs de Langen</author>
+  <maintainer email="langen@robot-rose.nl">Mathijs de Langen</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <build_depend>controller_manager</build_depend>
+  <build_depend>control_msgs</build_depend>
+  <build_depend>ecl_geometry</build_depend>
+  <build_depend>hardware_interface</build_depend>
+  <build_depend>wpi_jaco_msgs</build_depend>
+  <build_depend>jaco_sdk</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>actionlib</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_srvs</build_depend>
+  <build_depend>tf</build_depend>
+  
+  <run_depend>controller_manager</run_depend>
+  <run_depend>control_msgs</run_depend>
+  <run_depend>ecl_geometry</run_depend>
+  <run_depend>hardware_interface</run_depend>
+  <run_depend>wpi_jaco_msgs</run_depend>
+  <run_depend>jaco_sdk</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>actionlib</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>std_srvs</run_depend>
+  <run_depend>tf</run_depend>
+</package>
