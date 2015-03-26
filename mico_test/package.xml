@@ -15,7 +15,6 @@
   <build_depend>control_msgs</build_depend>
   <build_depend>ecl_geometry</build_depend>
   <build_depend>hardware_interface</build_depend>
-  <build_depend>wpi_jaco_msgs</build_depend>
   <build_depend>jaco_sdk</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>actionlib</build_depend>
@@ -27,7 +26,6 @@
   <run_depend>control_msgs</run_depend>
   <run_depend>ecl_geometry</run_depend>
   <run_depend>hardware_interface</run_depend>
-  <run_depend>wpi_jaco_msgs</run_depend>
   <run_depend>jaco_sdk</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>actionlib</run_depend>

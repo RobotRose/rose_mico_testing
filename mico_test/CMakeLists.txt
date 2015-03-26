@@ -11,7 +11,6 @@ find_package(catkin REQUIRED
     control_msgs
     ecl_geometry
     hardware_interface
-    wpi_jaco_msgs
     jaco_sdk
     roscpp
     sensor_msgs
