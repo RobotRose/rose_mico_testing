@@ -52,7 +52,10 @@ MicoTest::~MicoTest()
 void MicoTest::setCartesianMode()
 {
   boost::recursive_mutex::scoped_lock lock(api_mutex);
-
+  
+  ros::Rate rate(MAX_WAIT_TIME);
+  rate.sleep();
+  
   SetCartesianControl();
   current_control_mode_ = 0;
 
@@ -63,23 +66,24 @@ void MicoTest::setAngularMode()
 {
   boost::recursive_mutex::scoped_lock lock(api_mutex);
 
+  ros::Rate rate(MAX_WAIT_TIME);
+  rate.sleep();
+
   SetAngularControl();
   current_control_mode_ = 1;
-  ros::Rate rate(600);
 
   float f1 = rand() % 6400;
   float f2 = rand() % 6400;
-  // for (int i = 0; i < 100; i++)
-  // {
-    fingerPositionControl(f1, f2, 0);
-    // rate.sleep();
-  // }
 
+  fingerPositionControl(f1, f2, 0);
 }
 
 void MicoTest::showInfo()
 {
   boost::recursive_mutex::scoped_lock lock(api_mutex);
+
+  ros::Rate rate(MAX_WAIT_TIME);
+  rate.sleep();
 
   int kinova_control_type;
   GetControlType(kinova_control_type); // 1 is angular control, 0 is cartesian control
