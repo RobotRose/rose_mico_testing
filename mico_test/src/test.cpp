@@ -65,8 +65,16 @@ void MicoTest::setAngularMode()
 
   SetAngularControl();
   current_control_mode_ = 1;
+  ros::Rate rate(600);
 
-  fingerPositionControl(rand() % 6400, rand() % 6400, 0);
+  float f1 = rand() % 6400;
+  float f2 = rand() % 6400;
+  // for (int i = 0; i < 100; i++)
+  // {
+    fingerPositionControl(f1, f2, 0);
+    // rate.sleep();
+  // }
+
 }
 
 void MicoTest::showInfo()
@@ -124,94 +132,54 @@ void MicoTest::armPositionControl()
 
 void MicoTest::fingerPositionControl(float f1, float f2, float f3)
 {
-  f1 = std::max(f1, .02f);
-  f2 = std::max(f2, .02f);
-  f3 = std::max(f3, .02f);
+  // ROS_INFO("f1: %f, f2: %f", f1, f2);
 
   TrajectoryPoint jacoPoint;
+  AngularPosition angular_position;
+  GetAngularPosition(angular_position);
+
   jacoPoint.InitStruct();
-  jacoPoint.Position.Type                = ANGULAR_VELOCITY;
-  jacoPoint.Position.Actuators.Actuator1 = 0.0;
-  jacoPoint.Position.Actuators.Actuator2 = 0.0;
-  jacoPoint.Position.Actuators.Actuator3 = 0.0;
-  jacoPoint.Position.Actuators.Actuator4 = 0.0;
-  jacoPoint.Position.Actuators.Actuator5 = 0.0;
-  jacoPoint.Position.Actuators.Actuator6 = 0.0;
-  jacoPoint.Position.HandMode            = VELOCITY_MODE;
+  jacoPoint.Position.Type                = ANGULAR_POSITION;
+  jacoPoint.Position.Actuators.Actuator1 = angular_position.Actuators.Actuator1;
+  jacoPoint.Position.Actuators.Actuator2 = angular_position.Actuators.Actuator2;
+  jacoPoint.Position.Actuators.Actuator3 = angular_position.Actuators.Actuator3;
+  jacoPoint.Position.Actuators.Actuator4 = angular_position.Actuators.Actuator4;
+  jacoPoint.Position.Actuators.Actuator5 = angular_position.Actuators.Actuator5;
+  jacoPoint.Position.Actuators.Actuator6 = angular_position.Actuators.Actuator6;
 
-  bool goal_reached = false;
+  jacoPoint.Position.HandMode            = POSITION_MODE;
+  jacoPoint.Position.Fingers.Finger1     = f1;
+  jacoPoint.Position.Fingers.Finger2     = f2;
+  jacoPoint.Position.Fingers.Finger3     = 0.0;
 
-  AngularPosition position_data;
-  float error[3];
-  float prevTotalError;
-  float counter = 0; //check if error is unchanging, this likely means a finger is blocked by something so the controller should terminate
-  std::vector<float> errorFinger1;
-  std::vector<float> errorFinger2;
-  std::vector<float> errorFinger3;
-  errorFinger1.resize(10);
-  errorFinger2.resize(10);
-  errorFinger3.resize(10);
-  for (unsigned int i = 0; i < errorFinger1.size(); i++)
+  EraseAllTrajectories();
+  SendBasicTrajectory(jacoPoint);
+
+  bool goal_reached      = false;
+  bool converging        = true;
+  float prev_error       = std::numeric_limits<float>::max();
+  int not_converging_cnt = 0;
+
+  // Check goal reached
+  ros::Rate rate(10);
+  while ( not goal_reached && not_converging_cnt < 5 )
   {
-    errorFinger1[i] = 0.0;
-    errorFinger2[i] = 0.0;
-    errorFinger3[i] = 0.0;
-  }
-  ros::Rate rate(600);
-  while (!goal_reached)
-  {
-    {
-      boost::recursive_mutex::scoped_lock lock(api_mutex);
+    GetAngularPosition(angular_position);
 
-      //get current finger position
-      GetAngularPosition(position_data);
-      error[0] = f1 - position_data.Fingers.Finger1;
-      error[1] = f2 - position_data.Fingers.Finger2;
-      error[2] = 0.0;
+    float total_error = fabs(angular_position.Fingers.Finger1 - f1) + fabs(angular_position.Fingers.Finger2 - f2);
+    goal_reached      = (total_error < 0.166);
+    converging        = (total_error < prev_error);
+    prev_error        = total_error;
 
-      float totalError = fabs(error[0]) + fabs(error[1]) + fabs(error[2]);
-      if (totalError == prevTotalError)
-        counter++;
-      else
-        counter = 0;
-
-      prevTotalError = totalError;
-
-      if (totalError < 0.166 || counter > 40)
-      {
-        goal_reached = true;
-        jacoPoint.Position.Fingers.Finger1 = 0.0;
-        jacoPoint.Position.Fingers.Finger2 = 0.0;
-        jacoPoint.Position.Fingers.Finger3 = 0.0;
-      }
-      else
-      {
-        float errorSum[3] = {0};
-        for (unsigned int i = 0; i < errorFinger1.size(); i ++)
-        {
-          errorSum[0] += errorFinger1[i];
-          errorSum[1] += errorFinger2[i];
-          errorSum[2] += errorFinger3[i];
-        }
-        jacoPoint.Position.Fingers.Finger1 = std::max(std::min(KP_F*error[0] + KV_F*(error[0] - errorFinger1.front()) + KI_F*errorSum[0], 3000.0), -3000.0);
-        jacoPoint.Position.Fingers.Finger2 = std::max(std::min(KP_F*error[1] + KV_F*(error[1] - errorFinger2.front()) + KI_F*errorSum[1], 3000.0), -3000.0);
-        jacoPoint.Position.Fingers.Finger3 = std::max(std::min(KP_F*error[2] + KV_F*(error[2] - errorFinger3.front()) + KI_F*errorSum[2], 3000.0), -3000.0);
-
-        errorFinger1.insert(errorFinger1.begin(), error[0]);
-        errorFinger2.insert(errorFinger2.begin(), error[1]);
-        errorFinger3.insert(errorFinger3.begin(), error[2]);
-
-        errorFinger1.resize(10);
-        errorFinger2.resize(10);
-        errorFinger3.resize(10);
-      }
-      
-      EraseAllTrajectories();
-      SendBasicTrajectory(jacoPoint);
-    }
+    if ( not converging )
+      not_converging_cnt++;
+    else
+      not_converging_cnt = 0;
 
     rate.sleep();
   }
+
+  return;
 }
 
 } // namespace
