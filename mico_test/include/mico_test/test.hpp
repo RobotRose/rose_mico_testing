@@ -29,7 +29,7 @@
 #define SHOW_INFO_TIME             30.0 //[Hz]
 #define SWITCH_ANGULAR_MODE_TIME   0.33 //[Hz]
 #define SWITCH_CARTESIAN_MODE_TIME 15.0 //[Hz]
-#define MAX_WAIT_TIME              20.0 //[Hz]
+#define MAX_WAIT_TIME              10.0 //[Hz]
 
 //gains for finger controller
 #define KP_F 7.5
